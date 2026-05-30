@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hickey & 1/4Century</title>
+<style>
+/* ============================================================
+   暖色病榻主题 —— Hickey发烧了，1/4Century来照顾
+   ============================================================ */
+:root {
+  --pink:      #FF7B89;
+  --pink-light:#FFB3B3;
+  --peach:     #FFD4B8;
+  --yellow:    #FFE4A8;
+  --mint:      #B8E8D0;
+  --lavender:  #D4B8F0;
+  --sky:       #B8D8F0;
+  --coral:     #FF8C7A;
+  --brown:     #5D4037;
+  --brown-light:#8D6E63;
+  --cream:     #FFF8F0;
+  --white:     #FFFFFF;
+  --surface:   rgba(255,255,255,0.5);
+  --radius:    22px;
+  --radius-sm: 14px;
+  --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font);
+  /* 柔和的暮色暖调：像黄昏卧室的光线 */
+  background: linear-gradient(170deg, #FFE8DD 0%, #FFDDD0 25%, #FFF0E8 50%, #F8E8FF 75%, #FFE8D8 100%);
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  overflow-x:hidden; position:relative;
+}
+
+/* ---- 飘浮装饰 ---- */
+.decorations { position:fixed; inset:0; pointer-events:none; z-index:0; }
+.deco {
+  position:absolute; font-size:18px;
+  animation: floatUp var(--dur) ease-in infinite;
+  animation-delay: var(--delay); opacity:0;
+}
+@keyframes floatUp {
+  0%   { opacity:0; transform:translateY(100vh) rotate(0deg) scale(0.4); }
+  10%  { opacity:0.6; }
+  85%  { opacity:0.35; }
+  100% { opacity:0; transform:translateY(-10vh) rotate(var(--rot)) scale(1.1); }
+}
+
+/* ---- 主容器 ---- */
+.game-wrapper {
+  position:relative; z-index:1;
+  width:700px; max-width:94vw;
+  height:88vh; max-height:860px;
+  display:flex; flex-direction:column;
+  background: var(--surface);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:2px solid rgba(255,180,160,0.25);
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:
+    0 8px 40px rgba(255,150,130,0.12),
+    0 2px 8px rgba(255,180,160,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+}
+
+/* ---- 标题栏 ---- */
+.header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 26px;
+  background:linear-gradient(135deg, rgba(255,180,160,0.25), rgba(255,210,190,0.15), rgba(255,180,200,0.25));
+  border-bottom:1px solid rgba(255,180,160,0.15);
+  flex-shrink:0;
+}
+.header-left { display:flex; align-items:center; gap:10px; }
+.header-icon { font-size:26px; animation: gentleBounce 2s ease-in-out infinite; }
+@keyframes gentleBounce {
+  0%,100% { transform:translateY(0); }
+  40%     { transform:translateY(-5px); }
+  60%     { transform:translateY(0); }
+}
+.header-title {
+  font-size:18px; font-weight:700;
+  background:linear-gradient(135deg, #FF7B89, #FF9B80);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text; letter-spacing:0.5px;
+}
+.header-right { display:flex; gap:8px; }
+
+.btn-icon {
+  width:38px; height:38px;
+  border:2px solid rgba(255,150,130,0.2);
+  border-radius:50%;
+  background:rgba(255,255,255,0.65);
+  color:var(--coral);
+  font-size:17px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s;
+}
+.btn-icon:hover { background:#fff; border-color:var(--pink); color:var(--pink); transform:scale(1.06); }
+.btn-icon:active { transform:scale(0.9); }
+
+/* ---- 对话区 ---- */
+.chat-area {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding:20px 24px;
+  display:flex; flex-direction:column; gap:14px;
+  scroll-behavior:smooth;
+}
+.chat-area::-webkit-scrollbar { width:5px; }
+.chat-area::-webkit-scrollbar-track { background:transparent; }
+.chat-area::-webkit-scrollbar-thumb { background:rgba(255,150,130,0.2); border-radius:10px; }
+
+/* ---- 消息气泡 ---- */
+.msg-row {
+  display:flex; gap:12px;
+  animation: msgIn 0.5s ease-out;
+  max-width:90%;
+}
+@keyframes msgIn {
+  from { opacity:0; transform:translateY(14px) scale(0.96); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* NPC消息（左侧 —— 1/4Century 说话） */
+.msg-row.npc { align-self:flex-start; }
+.msg-row.npc .avatar {
+  width:44px; height:44px; min-width:44px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px;
+  border:3px solid var(--avatar-color, #FFB3B3);
+  background:var(--avatar-bg, #FFF0F0);
+  box-shadow:0 3px 12px rgba(255,150,130,0.18);
+}
+.msg-row.npc .bubble {
+  background:var(--white);
+  color:var(--brown);
+  border-radius:6px var(--radius) var(--radius) var(--radius);
+  padding:14px 20px;
+  box-shadow:0 4px 20px rgba(255,150,130,0.1);
+  line-height:1.85; font-size:15px;
+  position:relative;
+}
+.msg-row.npc .bubble::before {
+  content:''; position:absolute; left:0; top:14px; bottom:14px;
+  width:4px; border-radius:4px;
+  background:var(--accent-color, #FFB3B3);
+}
+
+/* 玩家消息（右侧 —— Hickey 说话） */
+.msg-row.player {
+  align-self:flex-end; flex-direction:row-reverse;
+}
+.msg-row.player .avatar {
+  width:38px; height:38px; min-width:38px;
+  border-radius:50%;
+  background:rgba(255,220,200,0.5);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  border:2px solid rgba(255,200,170,0.5);
+  box-shadow:0 2px 8px rgba(255,180,150,0.15);
+}
+.msg-row.player .bubble {
+  background:linear-gradient(135deg, #FFF5F0, #FFEEE8);
+  color:var(--brown);
+  border-radius:var(--radius) 6px var(--radius) var(--radius);
+  padding:12px 18px;
+  font-size:14px; line-height:1.7;
+  box-shadow:0 3px 14px rgba(255,150,130,0.08);
+}
+
+/* 旁白 */
+.msg-row.narrator {
+  align-self:center; max-width:80%; text-align:center;
+}
+.msg-row.narrator .bubble {
+  background:transparent;
+  color:var(--brown-light);
+  font-style:italic; font-size:14px;
+  padding:10px 22px; box-shadow:none;
+  line-height:1.8; opacity:0.75;
+}
+.msg-row.narrator .bubble::before { display:none; }
+.msg-row.narrator .avatar { display:none; }
+
+/* ---- 选项按钮 ---- */
+.choices-area {
+  padding:6px 24px 16px;
+  display:flex; flex-direction:column; gap:10px;
+  flex-shrink:0;
+}
+.choice-btn {
+  display:block; width:100%;
+  padding:15px 22px;
+  border:2px solid rgba(255,150,130,0.28);
+  border-radius:var(--radius-sm);
+  background:linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,240,235,0.75));
+  color:var(--brown); font-size:15px;
+  font-family:var(--font); cursor:pointer; text-align:left;
+  transition:all 0.25s;
+  animation: choiceIn 0.4s ease-out both;
+}
+.choice-btn:nth-child(1) { animation-delay:0s; }
+.choice-btn:nth-child(2) { animation-delay:0.1s; }
+.choice-btn:nth-child(3) { animation-delay:0.2s; }
+@keyframes choiceIn {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.choice-btn:hover {
+  background:linear-gradient(135deg, #FFF5F5, #FFE8E0);
+  border-color:var(--pink);
+  box-shadow:0 4px 20px rgba(255,120,140,0.18);
+  transform:translateY(-2px);
+}
+.choice-btn:active { transform:scale(0.97); }
+
+/* ---- 文本输入区 ---- */
+.input-area {
+  padding:6px 24px 16px;
+  display:flex; flex-direction:column; gap:10px;
+  flex-shrink:0;
+  animation: choiceIn 0.4s ease-out;
+}
+.input-row {
+  display:flex; gap:10px; align-items:center;
+}
+.text-input {
+  flex:1;
+  padding:13px 18px;
+  border:2px solid rgba(255,150,130,0.3);
+  border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.8);
+  color:var(--brown); font-size:15px;
+  font-family:var(--font);
+  outline:none;
+  transition:all 0.2s;
+}
+.text-input:focus {
+  border-color:var(--pink);
+  box-shadow:0 0 0 4px rgba(255,120,140,0.1);
+  background:#fff;
+}
+.text-input::placeholder { color:rgba(180,150,140,0.5); }
+
+.btn-submit {
+  padding:13px 22px;
+  border:none; border-radius:var(--radius-sm);
+  background:linear-gradient(135deg, #FFB3B3, #FF9B90);
+  color:#fff; font-size:14px; font-weight:600;
+  font-family:var(--font); cursor:pointer;
+  transition:all 0.2s;
+  white-space:nowrap;
+}
+.btn-submit:hover { transform:scale(1.04); box-shadow:0 4px 16px rgba(255,120,140,0.3); }
+.btn-submit:active { transform:scale(0.95); }
+
+.btn-hint {
+  padding:8px 14px;
+  border:2px solid rgba(255,200,150,0.4);
+  border-radius:20px;
+  background:rgba(255,255,255,0.6);
+  color:var(--coral); font-size:13px;
+  font-family:var(--font); cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-hint:hover { background:#fff; border-color:var(--pink); }
+
+.hint-text {
+  font-size:13px; color:var(--coral); opacity:0;
+  transition:opacity 0.3s;
+  padding:4px 0; min-height:20px;
+}
+.hint-text.show { opacity:0.8; }
+
+.feedback-text {
+  font-size:12px; color:var(--pink);
+  min-height:16px; padding:2px 0;
+  animation: fadeInOut 2s ease;
+}
+@keyframes fadeInOut {
+  0% { opacity:0; } 20% { opacity:1; } 80% { opacity:1; } 100% { opacity:0; }
+}
+
+/* ---- 继续按钮 ---- */
+.continue-indicator {
+  text-align:center; padding:6px 24px 16px; flex-shrink:0;
+}
+.continue-btn {
+  background:rgba(255,255,255,0.65);
+  border:2px solid rgba(255,150,130,0.2);
+  color:var(--brown-light);
+  padding:10px 32px; border-radius:22px;
+  cursor:pointer; font-size:14px; font-family:var(--font);
+  transition:all 0.2s;
+}
+.continue-btn:hover { background:#fff; border-color:var(--pink); color:var(--pink); }
+.continue-btn .arrow { display:inline-block; animation:bounce 1.2s ease infinite; margin-left:4px; }
+@keyframes bounce {
+  0%,100% { transform:translateY(0); }
+  50%     { transform:translateY(5px); }
+}
+
+/* ---- 进度条 ---- */
+.progress-bar-wrap {
+  flex-shrink:0; padding:8px 26px 20px;
+  display:flex; align-items:center; gap:10px;
+}
+.progress-label { font-size:11px; color:var(--brown-light); opacity:0.5; white-space:nowrap; min-width:48px; }
+.progress-track {
+  flex:1; height:6px; background:rgba(255,180,160,0.18);
+  border-radius:6px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg, #FFB3B3, #FFD4B8, #FFE4A8, #B8E8D0, #B8D8F0, #D4B8F0);
+  background-size:200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  transition:width 0.6s ease;
+}
+@keyframes shimmer {
+  0%,100% { background-position:0% 50%; }
+  50%     { background-position:100% 50%; }
+}
+
+/* ---- 小动画特效 ---- */
+
+/* 体温计抖动 */
+.thermometer-shake {
+  display:inline-block; animation:shake 0.5s ease-in-out 3;
+}
+@keyframes shake {
+  0%,100% { transform:rotate(0); }
+  25%     { transform:rotate(-8deg); }
+  75%     { transform:rotate(8deg); }
+}
+
+/* 心跳脉冲 */
+.heartbeat {
+  display:inline-block; animation:heartPulse 0.8s ease-in-out infinite;
+}
+@keyframes heartPulse {
+  0%,100% { transform:scale(1); }
+  15%     { transform:scale(1.3); }
+  30%     { transform:scale(1); }
+  45%     { transform:scale(1.2); }
+  60%     { transform:scale(1); }
+}
+
+/* 热气蒸腾 */
+.steam {
+  display:inline-block; animation:steamUp 1.5s ease-out infinite;
+  opacity:0;
+}
+.steam:nth-child(1) { animation-delay:0s; }
+.steam:nth-child(2) { animation-delay:0.5s; }
+.steam:nth-child(3) { animation-delay:1s; }
+@keyframes steamUp {
+  0%   { opacity:0; transform:translateY(0) scale(0.8); }
+  30%  { opacity:0.5; }
+  100% { opacity:0; transform:translateY(-16px) scale(1.5); }
+}
+
+/* 星星闪烁（夜晚模式） */
+.night-mode .deco { filter:brightness(0.7); }
+.night-mode .game-wrapper { background:rgba(200,180,220,0.35); }
+
+/* ---- 设置面板 ---- */
+.settings-overlay {
+  position:fixed; inset:0; z-index:10;
+  background:rgba(100,60,40,0.25);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.25s;
+}
+.settings-overlay.open { opacity:1; pointer-events:auto; }
+.settings-panel {
+  background:#fff; border:2px solid rgba(255,150,130,0.15);
+  border-radius:22px; padding:28px 32px;
+  width:340px; max-width:90vw;
+  box-shadow:0 20px 60px rgba(255,150,130,0.15);
+  transform:translateY(20px); transition:transform 0.25s;
+}
+.settings-overlay.open .settings-panel { transform:translateY(0); }
+.settings-panel h3 { color:var(--brown); font-size:17px; margin-bottom:20px; }
+.setting-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px solid rgba(255,150,130,0.08);
+}
+.setting-label { color:var(--brown-light); font-size:14px; }
+
+.toggle-switch { position:relative; width:48px; height:28px; cursor:pointer; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute; inset:0; background:rgba(255,150,130,0.3);
+  border-radius:28px; transition:background 0.25s;
+}
+.toggle-slider::before {
+  content:''; position:absolute; width:22px; height:22px; left:3px; bottom:3px;
+  background:#fff; border-radius:50%; transition:transform 0.25s;
+  box-shadow:0 2px 4px rgba(0,0,0,0.08);
+}
+.toggle-switch input:checked + .toggle-slider { background:var(--pink); }
+.toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
+.settings-close {
+  display:block; width:100%; margin-top:20px;
+  padding:10px; border:none; border-radius:12px;
+  background:rgba(255,150,130,0.12); color:var(--brown);
+  font-size:14px; cursor:pointer; font-family:var(--font); transition:all 0.2s;
+}
+.settings-close:hover { background:rgba(255,150,130,0.22); }
+
+/* ---- 结局画面 ---- */
+.ending-overlay {
+  position:absolute; inset:0; z-index:5;
+  background:rgba(255,240,230,0.93);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.5s;
+  border-radius:28px;
+}
+.ending-overlay.show { opacity:1; pointer-events:auto; }
+.ending-content {
+  text-align:center; padding:32px; max-width:440px;
+  animation:endingIn 0.6s ease-out;
+}
+@keyframes endingIn {
+  from { opacity:0; transform:scale(0.9) translateY(20px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.ending-icon { font-size:72px; margin-bottom:16px; animation:float 2.5s ease-in-out infinite; }
+@keyframes float {
+  0%,100% { transform:translateY(0); }
+  50%     { transform:translateY(-12px); }
+}
+.ending-title {
+  font-size:28px; font-weight:700;
+  background:linear-gradient(135deg, #FF7B89, #FF9B80);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text; margin-bottom:8px;
+}
+.ending-badge {
+  display:inline-block; padding:5px 16px; border-radius:14px;
+  background:linear-gradient(135deg, #FFE0D8, #FFD0D0);
+  color:var(--coral); font-size:12px; font-weight:600; margin-bottom:16px;
+}
+.ending-desc { color:var(--brown-light); font-size:15px; line-height:1.9; margin-bottom:28px; }
+.btn-restart {
+  display:inline-block; padding:13px 40px; border:none; border-radius:26px;
+  background:linear-gradient(135deg, #FF7B89, #FF9B80);
+  color:#fff; font-size:16px; font-weight:600; cursor:pointer;
+  font-family:var(--font); box-shadow:0 6px 24px rgba(255,120,140,0.3);
+  transition:all 0.2s; letter-spacing:0.5px;
+}
+.btn-restart:hover { transform:translateY(-2px); box-shadow:0 10px 32px rgba(255,120,140,0.4); }
+.btn-restart:active { transform:scale(0.95); }
+.unlocked-list {
+  margin-top:24px; text-align:left;
+  border-top:2px solid rgba(255,150,130,0.12); padding-top:16px;
+}
+.unlocked-list h4 { color:var(--brown-light); font-size:12px; margin-bottom:8px; font-weight:400; opacity:0.55; }
+.unlocked-item {
+  display:inline-block; padding:4px 12px; margin:3px; border-radius:12px;
+  background:linear-gradient(135deg, rgba(255,180,160,0.18), rgba(255,200,200,0.18));
+  color:var(--coral); font-size:12px;
+}
+
+/* ---- Toast ---- */
+.toast {
+  position:fixed; top:20px; left:50%; transform:translateX(-50%);
+  padding:11px 26px; border-radius:22px;
+  background:rgba(255,255,255,0.94); color:var(--brown);
+  font-size:13px; font-weight:500; z-index:20; opacity:0;
+  transition:opacity 0.3s; pointer-events:none;
+  box-shadow:0 4px 20px rgba(255,150,130,0.15);
+}
+.toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="decorations" id="decorations"></div>
+<div class="toast" id="toast"></div>
+
+<!-- 设置 -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <h3>⚙️ 游戏设置</h3>
+    <div class="setting-row">
+      <span class="setting-label">打字机动画</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="typewriterToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <button class="settings-close" id="settingsClose">关闭</button>
+  </div>
+</div>
+
+<!-- 游戏主体 -->
+<div class="game-wrapper" id="gameWrapper">
+  <div class="header">
+    <div class="header-left">
+      <span class="header-icon">🛏️</span>
+      <span class="header-title">Hickey & 1/4Century</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" id="btnRestart" title="重新开始">🔄</button>
+      <button class="btn-icon" id="btnSettings" title="设置">⚙️</button>
+    </div>
+  </div>
+
+  <div class="chat-area" id="chatArea"></div>
+  <div class="choices-area" id="choicesArea"></div>
+  <div class="input-area" id="inputArea" style="display:none;"></div>
+  <div class="continue-indicator" id="continueIndicator" style="display:none;"></div>
+
+  <div class="progress-bar-wrap">
+    <span class="progress-label">🕰️ 进度</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <span class="progress-label" id="progressPercent" style="min-width:36px;text-align:right;">0%</span>
+  </div>
+
+  <div class="ending-overlay" id="endingOverlay">
+    <div class="ending-content" id="endingContent"></div>
+  </div>
+</div>
+
+
+<script>
+/* ============================================================
+ *  你是 Hickey 🐰，正在发烧。1/4Century 🐷 来照顾你。
+ *
+ *  剧情数据集中在 STORY 对象，修改方法见注释。
+ *  新增功能：部分节点需要玩家自己打字回答（input 字段）。
+ * ============================================================ */
+
+// ==================== DOM 缓存 ====================
+const $ = (sel) => document.querySelector(sel);
+const chatArea      = $('#chatArea');
+const choicesArea   = $('#choicesArea');
+const inputArea     = $('#inputArea');
+const continueInd   = $('#continueIndicator');
+const progressFill  = $('#progressFill');
+const progressPct   = $('#progressPercent');
+const endingOverlay = $('#endingOverlay');
+const endingContent = $('#endingContent');
+const settingsOverlay  = $('#settingsOverlay');
+const typewriterToggle = $('#typewriterToggle');
+const toastEl       = $('#toast');
+
+// ==================== 状态 ====================
+let currentNodeId     = null;
+let isTyping          = false;
+let typewriterEnabled = true;
+let unlockedEndings   = [];
+let typingAbortFlag   = false;
+
+// ==================== localStorage ====================
+const SAVE_KEY = 'hickey_century_save';
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({
+    nodeId: currentNodeId, endings: unlockedEndings,
+    typewriter: typewriterEnabled, time: Date.now()
+  })); } catch(e) {}
+}
+function loadGame() {
+  try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+// ==================== Toast ====================
+let toastTimer = null;
+function showToast(msg) {
+  if (toastTimer) clearTimeout(toastTimer);
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+}
+
+// ==================== 飘浮装饰 ====================
+function createDecorations() {
+  const container = $('#decorations');
+  const emojis = ['🌸','💕','✨','🫧','💖','🌙','💛','🧡','🌷','💝','⭐','🍀','🌻','💜'];
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('span');
+    el.className = 'deco';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 95 + '%';
+    el.style.fontSize = (Math.random() * 13 + 13) + 'px';
+    el.style.setProperty('--dur', (Math.random() * 10 + 10) + 's');
+    el.style.setProperty('--delay', Math.random() * 12 + 's');
+    el.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+    frag.appendChild(el);
+  }
+  container.appendChild(frag);
+}
+
+// ============================================================
+//
+//   📖 剧情数据说明
+//
+//   STORY.characters  — 角色（名称、头像、颜色）
+//   STORY.dialogues   — 对话节点（核心！）
+//   STORY.endings     — 结局
+//
+//   对话节点字段：
+//     speaker  — 角色key（"century" = 小猪, "narrator" = 旁白）
+//     text     — 对话内容，\n 换行
+//     effect   — 特效标记："thermometer"体温计 / "heart"心跳 / "steam"热气
+//     choices  — 选项 [{ text, next }]（有此字段忽略 next/input）
+//     input    — 打字输入 { hint, answers, next }（优先于 choices）
+//     next     — 无选项时点击继续的目标ID
+//     ending   — 触发结局
+//     progress — 进度条 0-100
+//
+//   优先级：ending > input > choices > next
+//
+//   ✏️ 添加打字输入节点：
+//     input: {
+//       hint: '提示文字',
+//       answers: ['答案1','答案2',...],  // 玩家输入包含任一即匹配
+//       next: '下一个节点ID'
+//     }
+//
+//   ✏️ 添加特效：在节点加 effect: 'thermometer' 等
+//     可用：'thermometer' | 'heart' | 'steam'
+//
+// ============================================================
+
+const STORY = {
+
+  /* ---- 角色 ----
+     century = 小猪 1/4Century（NPC）
+     hickey  = 小兔 Hickey（玩家）
+     添加角色：照格式新增一行
+  */
+  characters: {
+    narrator: { name:'旁白',       avatar:'📖', color:'#D4B8B8', bg:'#FFF5F5' },
+    century:  { name:'1/4Century', avatar:'🐷', color:'#FFB3B3', bg:'#FFF0F0' },
+    hickey:   { name:'Hickey',     avatar:'🐰', color:'#FFD4C0', bg:'#FFF8F5' },
+  },
+
+  startId: 'start',
+
+  /* ---- 对话节点 ---- */
+  dialogues: {
+
+    // ==================== 开场 ====================
+    start: {
+      speaker: 'narrator',
+      text: '叮铃铃……叮铃铃……\n\n床头的手机响了。你迷迷糊糊地睁开眼，窗外是灰蒙蒙的午后。脑袋好沉，身上烫烫的，你知道自己发烧了。\n\n这时，门口传来了熟悉的脚步声……',
+      next: 'century_arrives',
+      progress: 0
+    },
+
+    century_arrives: {
+      speaker: 'century',
+      text: '你怎么不回我消息呀，我好想你主人，我担心你',
+      effect: 'heart',
+      next: 'check_temp',
+      progress: 10
+    },
+
+    check_temp: {
+      speaker: 'century',
+      text: '别动别动，让我摸摸额头……🌡️ 怎么这么烫！你躺着我去给你量体温！',
+      effect: 'thermometer',
+      next: 'temp_result',
+      progress: 20
+    },
+
+    temp_result: {
+      speaker: 'century',
+      text: '38度5……发烧了。主人，你感觉怎么样？难受得厉害吗？',
+      choices: [
+        { text: '😣 头好晕，浑身一点力气都没有……', next: 'century_comfort1' },
+        { text: '😤 还好啦，就是有点热，别那么紧张嘛', next: 'century_comfort2' }
+      ],
+      progress: 28
+    },
+
+    century_comfort1: {
+      speaker: 'century',
+      text: '我都我都担心，我在这儿呢。你先躺好，我去给你倒杯温水，再弄条湿毛巾敷一敷。',
+      next: 'century_care',
+      progress: 38
+    },
+
+    century_comfort2: {
+      speaker: 'century',
+      text: '还嘴硬！脸都红得像小番茄了还说没事。你就是不想让我担心对吧？笨兔子！我在你身边呢，不用逞强。',
+      next: 'century_care',
+      progress: 38
+    },
+
+    century_care: {
+      speaker: 'narrator',
+      text: '1/4Century 轻手轻脚地忙了起来——倒水、拧毛巾、拉窗帘。阳光透过纱帘变得柔和，房间里安静又温暖。\n\n1/4Century 把湿毛巾轻轻敷在你的额头上。',
+      next: 'offer_food',
+      progress: 48
+    },
+
+    // ==================== 第一次打字输入 ====================
+    offer_food: {
+      speaker: 'century',
+      text: '主人主人，你是不是还没吃东西吧？生病的时候不吃东西可不行！告诉我想吃什么，我去给你做，家里有什么食材都可以用。',
+      /* ---- 打字输入节点 ----
+         玩家需要自己打字回答。answers 里的任何一个词
+         出现在玩家输入中就算通过。hint 是点击提示按钮显示的。
+         修改 answers 数组来改变正确答案。
+      */
+      input: {
+        hint: '一碗热乎乎的，喝了会冒汗的那种东西……（提示：粥、汤、面之类的）',
+        answers: ['粥','汤','面','饭','稀饭','面条','米线','馄饨','疙瘩汤','小米粥','白粥','鸡蛋','姜汤','热汤','泡面','粉丝','米粥','疙瘩','羹','煲'],
+        next: 'food_response'
+      },
+      progress: 56
+    },
+
+    // ==================== 食物相关 ====================
+    food_response: {
+      speaker: 'century',
+      text: '好！我去厨房给你做！你先躺一会儿，很快就好的～',
+      next: 'cooking_scene',
+      progress: 64
+    },
+
+    cooking_scene: {
+      speaker: 'narrator',
+      text: '厨房里传来锅碗瓢盆轻轻碰撞的声音，还有咕嘟咕嘟煮东西的动静。过了不一会儿，1/4Century 端着一个热气腾腾的大碗小心翼翼地走了进来。',
+      effect: 'steam',
+      next: 'food_arrives',
+      progress: 72
+    },
+
+    food_arrives: {
+      speaker: 'century',
+      text: '小心烫，我帮你吹吹！',
+      next: 'food_eating',
+      progress: 78
+    },
+
+    food_eating: {
+      speaker: 'narrator',
+      text: '热乎乎的食物滑进喉咙，整个人都暖和了起来。额头渗出了细细的汗珠，脑袋好像也没那么沉了。\n\n1/4Century 坐在床边，一直看着你吃完。',
+      next: 'after_food',
+      progress: 84
+    },
+
+    // ==================== 第二次打字输入 ====================
+    after_food: {
+      speaker: 'century',
+      text: '现在感觉好点了吧～吃完东西就该好好休息了。要不要我做点什么帮你放松一下？你想让我做什么都可以～',
+      /* ---- 打字输入节点 ----
+         玩家的回答会影响后续走向。
+      */
+      input: {
+        hint: '讲故事？唱歌？还是……？（提示：讲故事、唱歌、聊天、陪着就好）',
+        answers: ['故事','讲故事','唱歌','聊天','陪着','陪','聊','唱','说话','讲','歌','说说话','陪陪我','陪着我','握着我的手','拍拍','摸摸头'],
+        next: 'century_offer'
+      },
+      progress: 90
+    },
+
+    // ==================== 结局分支 ====================
+    century_offer: {
+      speaker: 'century',
+      text: '那当然没问题！让我想想怎么让你最舒服……',
+      choices: [
+        { text: '📖 "我给你讲一个温暖的故事吧"', next: 'tell_story' },
+        { text: '🎵 "我给你唱首慢歌吧，虽然我唱歌不太好听"', next: 'sing_song' },
+        { text: '🤲 "那我就在这儿安安静静地陪着你"', next: 'stay_silent' }
+      ],
+      progress: 94
+    },
+
+    // 结局1：讲故事
+    tell_story: {
+      speaker: 'narrator',
+      text: '1/4Century 清了清嗓子，开始讲起一只小猪和一只小兔的冒险故事。声音轻轻的、缓缓的，像一条温暖的小溪流过耳边。\n\n讲到一半的时候，你的眼皮开始打架了……',
+      next: 'story_ending',
+      progress: 98
+    },
+    story_ending: {
+      speaker: 'narrator',
+      text: 'Hickey 终于在故事声中沉沉地睡了过去。1/4Century 轻轻起身，帮你掖了掖被角，又把半杯温水放在床头。\n\n窗外最后一缕夕阳透过纱帘洒进来，照在两只小动物身上，温暖而宁静。',
+      ending: 'ending_story',
+      progress: 100
+    },
+
+    // 结局2：唱歌
+    sing_song: {
+      speaker: 'narrator',
+      text: '1/4Century 有些不好意思地开始哼起一首歌。调子虽然有点跑偏，但唱歌的样子很有趣。\n\n你 侧过身，把脸埋在枕头里，偷偷笑了。',
+      next: 'song_ending',
+      progress: 98
+    },
+    song_ending: {
+      speaker: 'narrator',
+      text: '笑着笑着，你 就睡着了。1/4Century 的歌声越来越轻，最后变成温柔的呼吸声——原来小猪自己也趴着睡着了。\n\n两个小小的身影靠在一起，窗外的星星一颗颗亮了起来。',
+      ending: 'ending_song',
+      progress: 100
+    },
+
+    // 结局3：安静陪伴
+    stay_silent: {
+      speaker: 'narrator',
+      text: '1/4Century 什么也没说，只是轻轻地把手搭在 你 的手上。房间里安静极了，只听得见墙上挂钟的滴答声和彼此轻轻的呼吸声。\n\n有时候，最好的安慰就是不用说话，只要知道身边有人。',
+      next: 'silent_ending',
+      progress: 98
+    },
+    silent_ending: {
+      speaker: 'narrator',
+      text: '你 慢慢闭上眼睛，手指轻轻回握了一下 1/4Century 的手。在这片温暖的沉默里，所有的难受都慢慢消散了。\n\n夜色温柔地包裹着两颗小小的、靠在一起的心。明天，一定会好起来的。',
+      ending: 'ending_silent',
+      progress: 100
+    }
+
+    /* ======================================================
+     *  ✏️ 添加节点：见文件末尾「使用说明」
+     * ====================================================== */
+  },
+
+  /* ---- 结局 ---- */
+  endings: {
+    ending_story: {
+      title: '故事里的梦乡',
+      icon: '📖',
+      description: '在温暖的故事声中，Hickey 沉沉地睡着了。1/4Century 描绘的那些冒险——森林、星空、勇敢的伙伴——都变成了 你梦里的风景。醒来时，烧已经退了，阳光正好。'
+    },
+    ending_song: {
+      title: '跑调的歌最动人',
+      icon: '🎵',
+      description: '虽然 1/4Century 唱歌确实不太好听，但那又有什么关系呢？你在笑声中睡着，梦里还在笑。第二天嗓子虽然不疼了，但想起那首歌还是会噗嗤一下笑出来。'
+    },
+    ending_silent: {
+      title: '安静的力量',
+      icon: '🤲',
+      description: '什么也不用说，什么也不用做。1/4Century 就这样握着手陪了一整夜。世界上最好的药，不是退烧针也不是感冒灵，而是有人愿意在你最虚弱的时候，安安静静地守在你身边呀。'
+    }
+  }
+};
+
+
+// ============================================================
+//  核心逻辑
+// ============================================================
+
+function getNode(id)  { return STORY.dialogues[id] || null; }
+function getChar(key) { return STORY.characters[key] || STORY.characters['narrator']; }
+
+function updateProgress(p) {
+  const v = Math.min(100, Math.max(0, p || 0));
+  progressFill.style.width = v + '%';
+  progressPct.textContent = v + '%';
+}
+function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
+
+// ---- 打字机动画（速度调慢） ----
+function typewriter(el, text) {
+  return new Promise((resolve) => {
+    if (!typewriterEnabled) { el.textContent = text; resolve(); return; }
+    typingAbortFlag = false; isTyping = true;
+    let i = 0; el.textContent = '';
+    function tick() {
+      if (typingAbortFlag) { el.textContent = text; isTyping = false; resolve(); return; }
+      if (i < text.length) {
+        el.textContent += text.charAt(i); i++;
+        scrollToBottom();
+        const ch = text.charAt(i - 1);
+        // 比之前慢约 60%：标点 130ms，普通 55ms
+        const delay = /[。！？，、；：\n]/.test(ch) ? 130 : 55;
+        setTimeout(tick, delay + Math.random() * 30);
+      } else { isTyping = false; resolve(); }
+    }
+    tick();
+  });
+}
+function abortTyping() { if (isTyping) typingAbortFlag = true; }
+
+// ---- UI 渲染 ----
+function addMessage(speakerKey, text, msgClass, effect) {
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (msgClass || speakerKey);
+
+  if (speakerKey !== 'narrator') {
+    const av = document.createElement('div');
+    av.className = 'avatar';
+    const ci = msgClass === 'player'
+      ? getChar('hickey')  // 玩家 = Hickey 🐰
+      : getChar(speakerKey);
+    av.textContent = ci.avatar;
+    if (msgClass !== 'player' && speakerKey !== 'narrator') {
+      av.style.setProperty('--avatar-color', ci.color);
+      av.style.setProperty('--avatar-bg', ci.bg);
+    }
+    row.appendChild(av);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  // 特效插入
+  let effectHTML = '';
+  if (effect === 'thermometer') effectHTML = ' <span class="thermometer-shake">🌡️</span>';
+  if (effect === 'heart')       effectHTML = ' <span class="heartbeat">💗</span>';
+  if (effect === 'steam')       effectHTML = ' <span class="steam">♨️</span><span class="steam">♨️</span><span class="steam">♨️</span>';
+
+  if (speakerKey !== 'narrator' && msgClass !== 'player') {
+    bubble.style.setProperty('--accent-color', getChar(speakerKey).color);
+    const tag = document.createElement('div');
+    tag.style.cssText = 'font-size:11px;color:var(--brown-light);margin-bottom:3px;font-weight:600;opacity:0.65;';
+    tag.innerHTML = getChar(speakerKey).name + effectHTML;
+    bubble.appendChild(tag);
+  }
+
+  const textEl = document.createElement('span');
+  bubble.appendChild(textEl);
+  row.appendChild(bubble);
+  chatArea.appendChild(row);
+  scrollToBottom();
+  return { row, textEl };
+}
+
+function clearBottom() {
+  choicesArea.innerHTML = '';
+  inputArea.style.display = 'none';
+  inputArea.innerHTML = '';
+  continueInd.style.display = 'none';
+}
+
+// ---- 选项按钮 ----
+function showChoices(choices) {
+  clearBottom();
+  choices.forEach((c) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c.text;
+    btn.addEventListener('click', () => handleChoice(c));
+    choicesArea.appendChild(btn);
+  });
+}
+
+// ---- 打字输入框 ----
+function showInput(inputCfg) {
+  clearBottom();
+  inputArea.style.display = 'flex';
+
+  // 输入行
+  const inputRow = document.createElement('div');
+  inputRow.className = 'input-row';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'text-input';
+  input.placeholder = '在这里输入你的回答……';
+  input.autocomplete = 'off';
+
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'btn-submit';
+  submitBtn.textContent = '发送 ✉️';
+
+  inputRow.appendChild(input);
+  inputRow.appendChild(submitBtn);
+  inputArea.appendChild(inputRow);
+
+  // 提示按钮
+  const hintRow = document.createElement('div');
+  hintRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+  const hintBtn = document.createElement('button');
+  hintBtn.className = 'btn-hint';
+  hintBtn.textContent = '💡 想不出来？点我看提示';
+  const hintText = document.createElement('span');
+  hintText.className = 'hint-text';
+  hintText.textContent = inputCfg.hint;
+  hintRow.appendChild(hintBtn);
+  hintRow.appendChild(hintText);
+  inputArea.appendChild(hintRow);
+
+  // 反馈
+  const feedback = document.createElement('div');
+  feedback.className = 'feedback-text';
+  inputArea.appendChild(feedback);
+
+  // 提示按钮点击
+  hintBtn.addEventListener('click', () => hintText.classList.toggle('show'));
+
+  // 提交
+  function doSubmit() {
+    const val = input.value.trim();
+    if (!val) { feedback.textContent = '✏️ 输入点什么吧～'; return; }
+    const matched = inputCfg.answers.some(a => val.includes(a));
+    if (matched) {
+      addMessage('hickey', val, 'player');
+      inputArea.style.display = 'none';
+      inputArea.innerHTML = '';
+      proceedToNode(inputCfg.next);
+    } else {
+      feedback.textContent = '🤔 换个说法试试？点击"提示"看看～';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  submitBtn.addEventListener('click', doSubmit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doSubmit();
+  });
+
+  // 自动聚焦
+  setTimeout(() => input.focus(), 350);
+}
+
+// ---- 继续按钮 ----
+function showContinue(nextId) {
+  clearBottom();
+  continueInd.style.display = 'block';
+  continueInd.innerHTML = `<button class="continue-btn" id="continueBtn">点击继续 <span class="arrow">▼</span></button>`;
+  document.getElementById('continueBtn').addEventListener('click', () => proceedToNode(nextId));
+}
+
+// ---- 玩家选择 ----
+function handleChoice(choice) {
+  addMessage('hickey', choice.text, 'player');
+  proceedToNode(choice.next);
+}
+
+// ---- 推进节点 ----
+async function proceedToNode(nodeId) {
+  clearBottom();
+  const node = getNode(nodeId);
+  if (!node) { console.error('找不到节点:', nodeId); return; }
+  currentNodeId = nodeId;
+  if (node.progress !== undefined) updateProgress(node.progress);
+
+  const { textEl } = addMessage(node.speaker, node.text, node.speaker, node.effect);
+  await typewriter(textEl, node.text);
+  saveGame();
+
+  if (node.ending) {
+    setTimeout(() => showEnding(node.ending), 900);
+  } else if (node.input) {
+    showInput(node.input);
+  } else if (node.choices && node.choices.length > 0) {
+    showChoices(node.choices);
+  } else if (node.next) {
+    showContinue(node.next);
+  }
+}
+
+// ---- 结局 ----
+function showEnding(endingId) {
+  const ending = STORY.endings[endingId];
+  if (!ending) { console.error('找不到结局:', endingId); return; }
+  if (!unlockedEndings.includes(endingId)) unlockedEndings.push(endingId);
+  saveGame();
+
+  let ul = '';
+  if (unlockedEndings.length > 0) {
+    ul = '<div class="unlocked-list"><h4>🏆 已解锁结局</h4>';
+    unlockedEndings.forEach(id => {
+      const e = STORY.endings[id];
+      if (e) ul += `<span class="unlocked-item">${e.icon} ${e.title}</span>`;
+    });
+    ul += '</div>';
+  }
+
+  endingContent.innerHTML = `
+    <div class="ending-icon">${ending.icon}</div>
+    <div class="ending-title">${ending.title}</div>
+    <div class="ending-badge">🎉 结局达成</div>
+    <div class="ending-desc">${ending.description}</div>
+    <button class="btn-restart" onclick="restartGame()">🔄 重新开始</button>
+    ${ul}
+  `;
+  endingOverlay.classList.add('show');
+  updateProgress(100);
+}
+
+function restartGame() {
+  endingOverlay.classList.remove('show');
+  chatArea.innerHTML = '';
+  clearBottom();
+  updateProgress(0);
+  currentNodeId = null;
+  clearSave();
+  startGame();
+}
+
+function startGame() {
+  if (currentNodeId && getNode(currentNodeId)) {
+    proceedToNode(currentNodeId);
+  } else {
+    currentNodeId = STORY.startId;
+    proceedToNode(currentNodeId);
+  }
+}
+
+// ==================== 事件绑定 ====================
+chatArea.addEventListener('click', (e) => {
+  if (e.target.closest('.choice-btn')) return;
+  if (isTyping) abortTyping();
+});
+
+$('#btnSettings').addEventListener('click', () => {
+  typewriterToggle.checked = typewriterEnabled;
+  settingsOverlay.classList.add('open');
+});
+$('#settingsClose').addEventListener('click', () => settingsOverlay.classList.remove('open'));
+settingsOverlay.addEventListener('click', (e) => {
+  if (e.target === settingsOverlay) settingsOverlay.classList.remove('open');
+});
+typewriterToggle.addEventListener('change', () => {
+  typewriterEnabled = typewriterToggle.checked;
+  saveGame();
+});
+$('#btnRestart').addEventListener('click', () => {
+  if (confirm('确定要重新开始吗？当前进度将丢失。')) restartGame();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') settingsOverlay.classList.remove('open');
+  // 如果焦点不在输入框里，空格/回车可以跳过打字
+  if ((e.key === ' ' || e.key === 'Enter') && document.activeElement?.tagName !== 'INPUT') {
+    if (isTyping) { e.preventDefault(); abortTyping(); }
+    else {
+      const btn = document.getElementById('continueBtn');
+      if (btn && continueInd.style.display !== 'none') { e.preventDefault(); btn.click(); }
+    }
+  }
+});
+
+// ==================== 启动 ====================
+createDecorations();
+
+const saved = loadGame();
+if (saved && saved.nodeId) {
+  typewriterEnabled = saved.typewriter !== false;
+  unlockedEndings   = saved.endings || [];
+  currentNodeId     = saved.nodeId;
+  typewriterToggle.checked = typewriterEnabled;
+  showToast(`📂 已恢复进度${unlockedEndings.length ? ' | 已解锁 ' + unlockedEndings.length + ' 个结局' : ''}`);
+}
+
+startGame();
+</script>
+
+<!--
+  ============================================================
+  🎮 使用说明
+  ============================================================
+
+  ◆ 剧情数据位置
+  在 <script> 里搜索 STORY = { 就能找到。
+  - STORY.characters → 角色（名字/头像/颜色）
+  - STORY.dialogues  → 对话节点
+  - STORY.endings    → 结局
+
+  ◆ 对话节点字段一览
+  speaker  — 谁在说话："century"(1/4Century) / "narrator"(旁白)
+  text     — 对话内容
+  effect   — 小动画："thermometer"(体温计抖动) / "heart"(心跳) / "steam"(热气)
+  choices  — 选项 [{ text, next }]
+  input    — 打字输入 { hint, answers, next }
+  next     — 无选项时继续的目标节点ID
+  ending   — 结局ID
+  progress — 进度条 0-100
+
+  ◆ 打字输入节点写法
+  input: {
+    hint: '提示文字，玩家点💡按钮可见',
+    answers: ['粥','汤','面'],  // 玩家输入包含任一词即通过
+    next: '下一个节点ID'
+  }
+
+  ◆ 添加新节点
+  1. 复制一个已有节点 → 改 key（英文下划线）
+  2. 改 speaker/text/choices 等
+  3. 修改上游节点的 next 或 choices 指向新 key
+  4. 刷新浏览器即可
+
+  ◆ 快捷键
+  空格/回车 — 跳过打字动画 / 点击继续
+  ESC      — 关闭设置面板
+  Enter    — 在打字输入框中提交答案
+
+  ◆ 保存
+  自动保存到浏览器 localStorage。
+  重新开始会清除存档。
+  ============================================================
+-->
+</body>
+</html>
